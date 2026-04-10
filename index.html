@@ -2,11 +2,11 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta, name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PDA Inventory Pro - Sequence Scan</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDA Inventory Pro - Multi Device</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2/family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
         body { background-color: #f3f4f6; font-family: 'Inter', sans-serif; }
         .scan-input { font-size: 24px !important; text-align: center; }
@@ -21,6 +21,12 @@
         <div class="bg-indigo-700 p-4 text-white text-center">
             <h1 class="text-lg font-bold">PDA INVENTORY PRO</h1>
             <p class="text-xs opacity-80">Vị trí $\rightarrow$ Tag ID $\rightarrow$ Mã Hàng $\rightarrow$ Số Lượng</p>
+        </div>
+
+        <!-- Machine Settings (MỚI) -->
+        <div class="p-3 bg-gray-100 border-b flex items-center justify-between gap-2">
+            <span class="text-xs font-bold text-gray-500 uppercase">Tên máy quét:</span>
+            <input type="text" id="machineName" class="text-xs p-1 border rounded w-32 text-center font-bold" placeholder="Ví dụ: Máy 1">
         </div>
 
         <!-- Location Section -->
@@ -50,7 +56,7 @@
 
             <div class="grid grid-cols-2 gap-3">
                 <button id="btnExport" class="bg-green-600 text-white py-3 rounded-xl font-bold hover:bg-green-700 transition active:scale-95 flex items-center justify-center gap-2">
-                    <span>📥</span> Xuất Excel
+                    <span>☁️</span> Đồng bộ Cloud
                 </button>
                 <button id="btnClear" class="bg-red-500 text-white py-3 rounded-xl font-bold hover:bg-red-600 transition active:scale-95">
                     🗑️ Xóa hết
@@ -86,22 +92,26 @@
         const countDisp = document.getElementById('count');
         const locDisp = document.getElementById('currentLocDisp');
         const inputLabel = document.getElementById('inputLabel');
+        const machineInput = document.getElementById('machineName');
         
         const s1 = document.getElementById('step1');
         const s2 = document.getElementById('step2');
         const s3 = document.getElementById('step3');
 
-        // States
         let currentLoc = localStorage.getItem('pda_loc_pro') || '';
-        let currentStep = 'LOC'; // LOC -> TAG -> ITEM -> QTY
+        let currentStep = 'LOC';
         let tempRow = { tag: '', item: '', qty: '' };
         let scannedData = JSON.parse(localStorage.getItem('pda_data_pro')) || [];
+
+        // Load tên máy từ LocalStorage
+        machineInput.value = localStorage.getItem('pda_machine_name') || '';
+        machineInput.addEventListener('input', () => {
+            localStorage.setItem('pda_machine_name', machineInput.value);
+        });
 
         function updateUI() {
             locDisp.innerText = currentLoc || 'Chưa chọn vị trí';
             localStorage.setItem('pda_loc_pro', currentLoc);
-
-            // Cập nhật bảng
             dataList.innerHTML = '';
             scannedData.slice().reverse().forEach(row => {
                 const tr = document.createElement('tr');
@@ -114,9 +124,7 @@
         }
 
         function updateStepper() {
-            // Reset styles
             [s1, s2, s3].forEach(el => el.className = 'flex-1 py-2 rounded-lg text-center text-xs font-bold border-2 border-gray-300 transition-all');
-            
             if (currentStep === 'TAG') {
                 inputLabel.innerText = "ĐANG CHỜ: QUÉT TAG ID";
                 s1.classList.add('step-active');
@@ -128,6 +136,7 @@
                 inputLabel.innerText = "ĐANG CHỜ: NHẬP SỐ LƯỢNG";
                 s1.classList.add('step-done');
                 s2.classList.add('step-done');
+                s3.classList.add('step-//active');
                 s3.classList.add('step-active');
             } else {
                 inputLabel.innerText = "ĐANG CHỜ: QUÉT VỊ TRÍ";
@@ -156,18 +165,16 @@
                     currentStep = 'QTY';
                 } else if (currentStep === 'QTY') {
                     tempRow.qty = val;
-                    // Lưu toàn bộ dòng vào data
                     scannedData.push({
                         tag: tempRow.tag,
                         item: tempRow.item,
                         qty: tempRow.qty,
-                        loc: currentLoc
+                        loc: currentLoc,
+                        machine: machineInput.value || 'Unknown' // Gửi tên máy lên Cloud
                     });
-                    // Reset về bước quét Tag cho món tiếp theo tại vị trí này
                     tempRow = { tag: '', item: '', qty: '' };
                     currentStep = 'TAG';
                 }
-
                 updateUI();
                 barcodeInput.value = ''; 
             }
@@ -175,20 +182,39 @@
 
         document.addEventListener('click', () => barcodeInput.focus());
 
-        document.getElementById('btnExport').addEventListener('click', () => {
+        document.getElementById('btnExport').addEventListener('click', async () => {
             if (scannedData.length === 0) {
-                alert('Chưa có dữ liệu!');
+                alert('Chưa có dữ liệu để gửi!');
                 return;
             }
-            // Cột A: Tag ID, Cột B: Vị Trí, Cột C: Mã Hàng, Cột D: Số Lượng
-            const ws_data = [
-                ["Tag ID", "Vị Trí", "Mã Hàng", "Số Lượng"], 
-                ...scannedData.map(item => [item.tag, item.loc, item.item, item.qty])
-            ];
-            const wb = XLSX.utils.book_new();
-            const ws = XLSX.utils.aoa_to_sheet(ws_data);
-            XLSX.utils.book_append_sheet(wb, ws, "InventoryData");
-            XLSX.writeFile(wb, `Inventory_Full_${new Date().getTime()}.xlsx`);
+
+            // THAY LINK GOOGLE SCRIPT CỦA ANH VÀO ĐÂY
+            const CLOUD_URL = 'https://script.google.com/macros/s/XXXXX_LINK_CỦA_ANH_XXXXX/exec'; 
+
+            const btn = document.getElementById('btnExport');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '⌛ Đang đồng bộ...';
+            btn.disabled = true;
+
+            try {
+                await fetch(CLOUD_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(scannedData)
+                });
+
+                alert('✅ ĐỒNG BỘ THÀNH CÔNG!\nDữ liệu đã được ghi vào Google Sheet.');
+                if (confirm('Đồng bộ thành công. Anh có muốn xóa dữ liệu trên PDA không?')) {
+                    scannedData = [];
+                    updateUI();
+                }
+            } catch (error) {
+                alert('❌ LỖI KẾT NỐI: ' + error);
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
         });
 
         document.getElementById('btnClear').addEventListener('click', () => {
