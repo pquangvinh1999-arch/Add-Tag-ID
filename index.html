@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WHM Enterprise - Vinh</title>
+    <title>WHM Enterprise - Vinh Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -17,11 +17,12 @@
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         .ai-gradient { background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); }
-        
-        /* Cố định Header bảng */
         .table-container { height: calc(100vh - 250px); overflow-y: auto; }
         thead th { position: sticky; top: 0; background: #f8fafc; z-index: 20; box-shadow: 0 1px 0 #e2e8f0; }
-        .table-sticky-col { position: sticky; left: 0; background: white; z-index: 10; border-right: 2px solid #e2e8f0; }
+        
+        /* Hiệu ứng cho phần Mapping */
+        .input-locked { background-color: #f1f5f9; border-color: #4f46e5; color: #4f46e5; font-weight: 800; }
+        .mapping-area { background: linear-gradient(135deg, #ffffff 0%, #fdfcff 100%); }
     </style>
 </head>
 <body class="h-screen flex overflow-hidden">
@@ -39,7 +40,7 @@
             <div>
                 <p class="text-[10px] font-bold text-slate-400 uppercase px-3 mb-2 tracking-widest">Vận hành</p>
                 <div class="space-y-1">
-                    <div onclick="switchPage('nhap')" id="menu-nhap" class="sidebar-item flex items-center gap-3 p-3 rounded-xl text-sm font-semibold text-slate-600"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 003 3h6a3 3 0 003-3V7a3 3 0 00-3-3h-6a3 3 0 00-3 3v1" /></svg>Nhập kho</div>
+                    <div onclick="switchPage('nhap')" id="menu-nhap" class="sidebar-item flex items-center gap-3 p-3 rounded-xl text-sm font-semibold text-slate-600 active"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 003 3h6a3 3 0 003-3V7a3 3 0 00-3-3h-6a3 3 0 00-3 3v1" /></svg>Nhập kho (Ánh xạ)</div>
                     <div onclick="switchPage('xuat')" id="menu-xuat" class="sidebar-item flex items-center gap-3 p-3 rounded-xl text-sm font-medium text-slate-600"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>Xuất kho</div>
                 </div>
             </div>
@@ -51,49 +52,58 @@
                 </div>
             </div>
         </nav>
-        <div class="p-4 border-t border-slate-100">
-            <div class="flex items-center gap-3 p-3 rounded-2xl bg-slate-50 border border-slate-100">
-                <div class="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 font-bold text-xs">AV</div>
-                <div class="flex-1 overflow-hidden"><p class="text-xs font-bold text-slate-900 truncate">Admin Vinh</p><p class="text-[10px] text-slate-400">Super User</p></div>
-            </div>
-        </div>
     </aside>
 
     <div class="flex-1 flex flex-col h-full relative overflow-hidden">
         <header class="h-16 bg-white border-b border-slate-200 px-8 flex justify-between items-center gap-4">
             <h2 id="pageTitle" class="text-lg font-bold text-slate-800 min-w-[200px]">Nhập Kho Thông Minh</h2>
-            
             <div class="flex-1 max-w-xl">
                 <div class="relative flex items-center">
                     <div class="absolute left-3 w-6 h-6 ai-gradient rounded-full flex items-center justify-center text-white shadow-sm scale-75">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor"><path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1a1 1 0 112 0v1a1 1 0 11-2 0zM13.536 14.243a1 1 0 010 1.414l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 0zM16.243 16.243a1 1 0 01-1.414 0l-.707-.707a1 1 0 111.414-1.414l.707.707a1 1 0 010 1.414z"/></svg>
                     </div>
-                    <input type="text" id="aiCmd" onkeypress="if(event.key==='Enter') askAI()" class="w-full pl-11 pr-10 py-2 bg-slate-100 border-none rounded-xl text-sm font-medium focus:ring-2 focus:ring-indigo-400 outline-none transition-all" placeholder="Hỏi AI (VD: 'Mở tồn kho', 'Tìm mã 5152')...">
-                    <button onclick="askAI()" class="absolute right-2 text-slate-400 hover:text-indigo-600 transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
-                    </button>
+                    <input type="text" id="aiCmd" onkeypress="if(event.key==='Enter') askAI()" class="w-full pl-11 pr-10 py-2 bg-slate-100 border-none rounded-xl text-sm font-medium focus:ring-2 focus:ring-indigo-400 outline-none transition-all" placeholder="Hỏi AI (VD: 'Tìm mã 8709')...">
                 </div>
             </div>
-
-            <div class="flex items-center gap-4">
-                <span id="currentDate" class="text-xs font-bold text-slate-700 whitespace-nowrap"></span>
-            </div>
+            <span id="currentDate" class="text-xs font-bold text-slate-700 whitespace-nowrap"></span>
         </header>
 
         <div id="mainContent" class="flex-1 p-8 overflow-y-auto custom-scrollbar">
             
-            <div id="view-nhap" class="hidden max-w-2xl mx-auto space-y-6">
-                <div class="bg-white p-8 rounded-3xl border border-slate-200 shadow-xl text-center space-y-6">
-                    <h3 class="text-2xl font-bold text-slate-800">Nhập Kho Nhanh</h3>
-                    <div class="flex flex-col items-center gap-4">
-                        <div id="stepIndicator" class="flex gap-2 mb-4">
-                            <div class="w-8 h-2 rounded-full bg-indigo-600"></div><div class="w-8 h-2 rounded-full bg-slate-200"></div><div class="w-8 h-2 rounded-full bg-slate-200"></div><div class="w-8 h-2 rounded-full bg-slate-200"></div>
-                        </div>
-                        <input type="text" id="scanInput" class="w-full p-5 border-2 border-indigo-100 rounded-2xl text-center text-2xl focus:ring-4 focus:ring-indigo-100 outline-none transition-all" placeholder="Quét tại đây..." autofocus>
-                        <p id="scanLabel" class="text-sm text-slate-500 font-medium">Vui lòng quét Vị trí kệ/bin</p>
+            <div id="view-nhap" class="max-w-2xl mx-auto space-y-6">
+                <div class="mapping-area p-8 rounded-3xl border border-slate-200 shadow-xl text-center space-y-8">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-2xl font-bold text-slate-800">Thuật toán Ánh xạ</h3>
+                        <button onclick="resetBin()" class="text-xs bg-slate-200 hover:bg-red-500 hover:text-white px-4 py-2 rounded-lg font-bold transition-all uppercase tracking-wider">✕ Đổi vị trí</button>
                     </div>
-                    <button id="btnSync" class="bg-indigo-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-indigo-700 shadow-lg shadow-indigo-200 transition-all">Đồng bộ Cloud</button>
+
+                    <div class="space-y-6">
+                        <div class="relative group">
+                            <label class="block text-left text-[10px] font-bold text-indigo-500 uppercase ml-4 mb-1">Bước 1: Vị trí Kệ (Bin)</label>
+                            <input type="text" id="binInput" class="w-full p-5 border-2 border-slate-200 rounded-2xl text-center text-2xl focus:border-indigo-500 outline-none transition-all" placeholder="Quét Bin tại đây..." autofocus>
+                        </div>
+
+                        <div class="flex justify-center py-2">
+                            <div class="h-8 w-[2px] bg-slate-100 animate-bounce"></div>
+                        </div>
+
+                        <div class="relative">
+                            <label class="block text-left text-[10px] font-bold text-slate-400 uppercase ml-4 mb-1">Bước 2: Quét mã Tag (Hàng loạt)</label>
+                            <input type="text" id="tagInput" disabled class="w-full p-5 border-2 border-slate-100 rounded-2xl text-center text-3xl focus:border-indigo-500 outline-none transition-all opacity-50" placeholder="Chờ khóa Bin...">
+                            <p id="mapLabel" class="text-xs text-slate-400 mt-3 font-medium italic">Vui lòng quét vị trí trước để bắt đầu ánh xạ</p>
+                        </div>
+                    </div>
+
+                    <div class="pt-6 border-t border-slate-50 flex items-center justify-between">
+                        <div class="text-left">
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Đang chờ đồng bộ</p>
+                            <p class="text-xl font-black text-indigo-600"><span id="queueCount">0</span> Tags</p>
+                        </div>
+                        <button id="btnSync" class="bg-indigo-600 text-white px-10 py-4 rounded-2xl font-bold hover:bg-indigo-700 shadow-xl shadow-indigo-100 transition-all active:scale-95">ĐỒNG BỘ LÊN CLOUD</button>
+                    </div>
                 </div>
+
+                <div id="mappingPreview" class="grid grid-cols-2 sm:grid-cols-3 gap-3"></div>
             </div>
 
             <div id="view-xuat" class="hidden max-w-2xl mx-auto space-y-6">
@@ -104,40 +114,28 @@
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-8 4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 17v-10l8 4" /></svg>
                         </div>
                         <input type="text" id="exportInput" class="w-full p-5 border-2 border-red-100 rounded-2xl text-center text-2xl focus:ring-4 focus:ring-red-100 outline-none transition-all" placeholder="Quét Tag ID để xuất...">
-                        <p id="exportLabel" class="text-sm text-slate-500 font-medium">Quét mã Tag để trừ tồn kho</p>
+                        <p class="text-sm text-slate-500 font-medium italic">Quét mã Tag để trừ dữ liệu khỏi hệ thống</p>
                     </div>
                 </div>
             </div>
 
             <div id="view-tonkho" class="hidden h-full flex flex-col space-y-4">
                 <div class="flex justify-between items-center">
-                    <h3 class="text-xl font-bold text-slate-800">Chi Tiết Tồn Kho Thành Phẩm</h3>
+                    <h3 class="text-xl font-bold text-slate-800">Kho Thành Phẩm <span class="text-slate-400 text-sm font-normal">(Cột H & I)</span></h3>
                     <div class="relative w-80">
-                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
-                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-                        </span>
-                        <input type="text" id="searchInv" onkeyup="filterInventory()" class="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Lọc dữ liệu tức thì...">
+                        <input type="text" id="searchInv" onkeyup="filterInventory()" class="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Tìm theo mã hàng, tag, bin...">
+                        <span class="absolute inset-y-0 left-3 flex items-center text-slate-400"><svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg></span>
                     </div>
                 </div>
-                
                 <div class="glass-card rounded-3xl border border-slate-200 shadow-sm flex-1 overflow-hidden">
                     <div class="table-container custom-scrollbar">
-                        <table class="w-full text-left text-xs relative">
-                            <thead class="uppercase text-slate-600 font-bold tracking-wider">
+                        <table class="w-full text-left text-xs">
+                            <thead class="uppercase text-slate-500 font-bold tracking-wider">
                                 <tr>
-                                    <th class="p-4 table-sticky-col">Tag ID</th>
-                                    <th class="p-4">Feature (Mã Hàng)</th>
-                                    <th class="p-4 text-center">Qty Act</th>
-                                    <th class="p-4 text-center">Qty ISCALA</th>
-                                    <th class="p-4">LP NO.</th>
-                                    <th class="p-4">Bin</th>
-                                    <th class="p-4">WH Location</th>
-                                    <th class="p-4">Stock-in</th>
-                                    <th class="p-4">Create</th>
+                                    <th class="p-4 bg-white/80">Tag ID (H)</th><th class="p-4 bg-white/80">Bin (I)</th><th class="p-4">Mã Hàng (B)</th><th class="p-4 text-center">Qty Act</th><th class="p-4">LP No.</th><th class="p-4">Ngày Nhập</th>
                                 </tr>
                             </thead>
-                            <tbody id="inventoryBody" class="divide-y divide-slate-100 bg-white">
-                                </tbody>
+                            <tbody id="inventoryBody" class="divide-y divide-slate-100 bg-white"></tbody>
                         </table>
                     </div>
                 </div>
@@ -145,9 +143,9 @@
 
             <div id="view-dashboard" class="hidden space-y-8">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="glass-card p-6 rounded-3xl shadow-sm"><p class="text-xs font-bold text-slate-400 uppercase mb-1">Tổng tồn kho</p><h3 class="text-3xl font-bold text-slate-900" id="dash-total">0 pcs</h3></div>
-                    <div class="glass-card p-6 rounded-3xl shadow-sm"><p class="text-xs font-bold text-slate-400 uppercase mb-1">Đơn chờ xuất</p><h3 class="text-3xl font-bold text-indigo-600" id="dash-pending">0 đơn</h3></div>
-                    <div class="glass-card p-6 rounded-3xl shadow-sm"><p class="text-xs font-bold text-slate-400 uppercase mb-1">Cảnh báo tồn thấp</p><h3 class="text-3xl font-bold text-red-500" id="dash-alert">0 mã</h3></div>
+                    <div class="glass-card p-6 rounded-3xl shadow-sm"><p class="text-xs font-bold text-slate-400 uppercase mb-1">Tổng Tags</p><h3 class="text-3xl font-bold text-slate-900" id="dash-total">0</h3></div>
+                    <div class="glass-card p-6 rounded-3xl shadow-sm"><p class="text-xs font-bold text-slate-400 uppercase mb-1">Vị trí đang sử dụng</p><h3 class="text-3xl font-bold text-indigo-600" id="dash-bins">0</h3></div>
+                    <div class="glass-card p-6 rounded-3xl shadow-sm"><p class="text-xs font-bold text-slate-400 uppercase mb-1">Cảnh báo</p><h3 class="text-3xl font-bold text-red-500">0</h3></div>
                 </div>
                 <div class="glass-card p-6 rounded-3xl shadow-sm h-96"><canvas id="mainChart"></canvas></div>
             </div>
@@ -155,15 +153,111 @@
     </div>
 
     <script>
-        const CLOUD_URL = 'https://script.google.com/macros/s/XXXX_LINK_CỦA_ANH_XXXX/exec';
+        // Cấu hình Cloud của anh
+        const CLOUD_URL = 'https://script.google.com/macros/s/AKfycbw0T93AyMxWeY-RsexywLEQXD931vSMj__pqR0VR20ZxiTOPFJJMa9n9-SXCyyg2MPdEA/exec';
         const SHEET_ID = '187ELbEKpx_ZOlIowIj9M0Rqt7V3R2SMdcrtGUylNAnA';
         const SHEET_GID = '606205569';
 
-        let currentStep = 'LOC';
-        let currentLoc = localStorage.getItem('pda_loc_pro') || '';
-        let tempRow = { tag: '', item: '', qty: '' };
-        let scannedData = [];
-        let inventoryData = []; // Lưu trữ dữ liệu gốc để lọc cho nhanh
+        let currentBin = '';
+        let scanQueue = [];
+        let inventoryData = [];
+
+        // --- THUẬT TOÁN ÁNH XẠ ---
+
+        // 1. Quét Bin và khóa (Block)
+        document.getElementById('binInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                const val = this.value.trim();
+                if (!val) return;
+
+                currentBin = val;
+                this.disabled = true;
+                this.classList.add('input-locked');
+                
+                const tagInput = document.getElementById('tagInput');
+                tagInput.disabled = false;
+                tagInput.classList.remove('opacity-50');
+                tagInput.placeholder = "Bây giờ hãy quét Tag ID...";
+                tagInput.focus();
+                
+                document.getElementById('mapLabel').innerHTML = `Đang khóa vị trí: <b class="text-indigo-600">${val}</b>. Quét Tag để ánh xạ.`;
+            }
+        });
+
+        // 2. Quét Tag hàng loạt
+        document.getElementById('tagInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                const tagId = this.value.trim();
+                if (!tagId || !currentBin) return;
+
+                // Thêm vào hàng chờ
+                scanQueue.push({ tag: tagId, bin: currentBin });
+                
+                // Hiển thị Preview
+                const preview = document.getElementById('mappingPreview');
+                const card = `
+                    <div class="bg-white p-3 rounded-xl border border-indigo-100 shadow-sm animate-shrink">
+                        <p class="text-[10px] font-bold text-slate-400 uppercase">Tag ID</p>
+                        <p class="text-sm font-bold text-slate-800">${tagId}</p>
+                        <div class="mt-2 text-[10px] bg-indigo-50 text-indigo-600 inline-block px-2 py-0.5 rounded font-bold">${currentBin}</div>
+                    </div>`;
+                preview.insertAdjacentHTML('afterbegin', card);
+                
+                document.getElementById('queueCount').innerText = scanQueue.length;
+                this.value = '';
+                this.focus();
+            }
+        });
+
+        // 3. Reset Bin để đổi vị trí
+        function resetBin() {
+            currentBin = '';
+            const binInp = document.getElementById('binInput');
+            binInp.disabled = false;
+            binInp.value = '';
+            binInp.classList.remove('input-locked');
+            
+            const tagInp = document.getElementById('tagInput');
+            tagInp.disabled = true;
+            tagInp.classList.add('opacity-50');
+            tagInp.value = '';
+            tagInp.placeholder = "Chờ khóa Bin...";
+            
+            document.getElementById('mapLabel').innerText = "Vui lòng quét vị trí trước để bắt đầu ánh xạ";
+            binInp.focus();
+        }
+
+        // 4. Đồng bộ Cloud
+        document.getElementById('btnSync').addEventListener('click', async () => {
+            if (scanQueue.length === 0) return alert('Chưa có Tag nào được quét!');
+            
+            const btn = document.getElementById('btnSync');
+            btn.innerHTML = '⌛ Đang gửi...';
+            btn.disabled = true;
+
+            try {
+                // Gửi mảng scanQueue lên App Script
+                // payload sẽ chứa {tag, bin} -> Ghi vào cột H và I
+                await fetch(CLOUD_URL, { 
+                    method: 'POST', 
+                    mode: 'no-cors', 
+                    body: JSON.stringify({ action: 'INBOUND', payload: scanQueue }) 
+                });
+                
+                alert('✅ Đã đồng bộ thành công ' + scanQueue.length + ' mã Tag!');
+                scanQueue = [];
+                document.getElementById('queueCount').innerText = '0';
+                document.getElementById('mappingPreview').innerHTML = '';
+                resetBin();
+            } catch (e) {
+                alert('Lỗi đồng bộ Cloud!');
+            } finally {
+                btn.innerHTML = 'ĐỒNG BỘ LÊN CLOUD';
+                btn.disabled = false;
+            }
+        });
+
+        // --- CÁC HÀM GIAO DIỆN ---
 
         function switchPage(pageId) {
             ['view-dashboard', 'view-nhap', 'view-xuat', 'view-tonkho'].forEach(id => document.getElementById(id).classList.add('hidden'));
@@ -172,147 +266,79 @@
             document.getElementById('view-' + pageId).classList.remove('hidden');
             document.getElementById('menu-' + pageId).classList.add('active');
 
-            if (pageId === 'dashboard') {
-                document.getElementById('pageTitle').innerText = 'Dashboard Tổng Thể';
-                loadDashboardData();
-            } else if (pageId === 'nhap') {
-                document.getElementById('pageTitle').innerText = 'Nhập Kho Thông Minh';
-                setTimeout(() => document.getElementById('scanInput').focus(), 100);
-            } else if (pageId === 'xuat') {
-                document.getElementById('pageTitle').innerText = 'Xuất Kho Thông Minh';
-                setTimeout(() => document.getElementById('exportInput').focus(), 100);
+            if (pageId === 'nhap') {
+                document.getElementById('pageTitle').innerText = 'Nhập Kho (Mapping)';
+                resetBin();
             } else if (pageId === 'tonkho') {
                 document.getElementById('pageTitle').innerText = 'Tồn Kho Thành Phẩm';
                 loadInventoryFromSheet();
+            } else if (pageId === 'dashboard') {
+                document.getElementById('pageTitle').innerText = 'Dashboard Tổng Thể';
+                loadDashboardData();
             }
         }
 
         async function loadInventoryFromSheet() {
-            const tableBody = document.getElementById('inventoryBody');
-            tableBody.innerHTML = '<tr><td colspan="9" class="p-8 text-center text-slate-400 italic animate-pulse">Đang tải dữ liệu từ Google Cloud...</td></tr>';
-            
+            const body = document.getElementById('inventoryBody');
+            body.innerHTML = '<tr><td colspan="6" class="p-8 text-center animate-pulse">Đang tải dữ liệu...</td></tr>';
             const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${SHEET_GID}`;
-            
             try {
-                const response = await fetch(url);
-                const data = await response.text();
+                const res = await fetch(url);
+                const data = await res.text();
                 const rows = data.split('\n').slice(1);
-                
-                // Lưu vào biến global để lọc không lag
-                inventoryData = rows.map(row => row.split(',')).filter(cols => cols.length >= 9);
+                inventoryData = rows.map(r => r.split(',')).filter(c => c.length >= 9);
                 renderTable(inventoryData);
-                
-                // Cập nhật số liệu dashboard sơ bộ
-                document.getElementById('dash-total').innerText = inventoryData.length + ' Tags';
-            } catch (error) {
-                tableBody.innerHTML = `<tr><td colspan="9" class="p-8 text-center text-red-500">Lỗi kết nối. Hãy kiểm tra quyền chia sẻ Sheet.</td></tr>`;
-            }
+                document.getElementById('dash-total').innerText = inventoryData.length;
+                // Đếm số Bin không trùng
+                const bins = new Set(inventoryData.map(r => r[8])).size;
+                document.getElementById('dash-bins').innerText = bins;
+            } catch (e) { body.innerHTML = 'Lỗi tải Sheet'; }
         }
 
-        // Hàm vẽ bảng - Tách riêng để tái sử dụng khi lọc
         function renderTable(data) {
-            const tableBody = document.getElementById('inventoryBody');
-            tableBody.innerHTML = data.map(cols => `
-                <tr class="hover:bg-indigo-50/50 transition-colors">
-                    <td class="p-4 font-bold text-indigo-600 table-sticky-col">${cols[7]}</td>
-                    <td class="p-4 text-slate-700 font-medium">${cols[1]}</td>
-                    <td class="p-4 text-center font-bold text-slate-900">${cols[2]}</td>
-                    <td class="p-4 text-center text-slate-500">${cols[3]}</td>
-                    <td class="p-4 text-slate-600">${cols[0]}</td>
-                    <td class="p-4 text-slate-700 font-semibold">${cols[8]}</td>
-                    <td class="p-4 text-slate-500">${cols[4]}</td>
-                    <td class="p-4 text-slate-400">${cols[5]}</td>
-                    <td class="p-4 text-slate-400">${cols[6]}</td>
-                </tr>
-            `).join('');
+            document.getElementById('inventoryBody').innerHTML = data.map(cols => `
+                <tr class="hover:bg-indigo-50/50">
+                    <td class="p-4 font-bold text-indigo-600">${cols[7] || '-'}</td>
+                    <td class="p-4 font-bold text-slate-700">${cols[8] || '-'}</td>
+                    <td class="p-4">${cols[1] || ''}</td>
+                    <td class="p-4 text-center">${cols[2] || ''}</td>
+                    <td class="p-4 text-slate-400">${cols[0] || ''}</td>
+                    <td class="p-4 text-slate-400">${cols[5] || ''}</td>
+                </tr>`).join('');
         }
 
-        // Thuật toán lọc tối ưu: Lọc trên mảng thay vì quét DOM
         function filterInventory() {
             const val = document.getElementById('searchInv').value.toLowerCase();
-            const filtered = inventoryData.filter(cols => 
-                cols.some(cell => cell.toLowerCase().includes(val))
-            );
+            const filtered = inventoryData.filter(cols => cols.join(' ').toLowerCase().includes(val));
             renderTable(filtered);
         }
 
         function askAI() {
             const cmd = document.getElementById('aiCmd').value.toLowerCase();
             if (cmd.includes('nhập')) switchPage('nhap');
-            else if (cmd.includes('xuất')) switchPage('xuat');
-            else if (cmd.includes('tồn') || cmd.includes('danh sách')) switchPage('tonkho');
-            else if (cmd.includes('dashboard')) switchPage('dashboard');
+            else if (cmd.includes('tồn')) switchPage('tonkho');
             else if (cmd.includes('tìm')) {
                 const key = cmd.split('tìm')[1].trim();
                 switchPage('tonkho');
                 document.getElementById('searchInv').value = key;
                 filterInventory();
-            } else {
-                alert('AI: Tôi đã ghi nhận yêu cầu: ' + cmd);
             }
             document.getElementById('aiCmd').value = '';
         }
-
-        // Giữ nguyên logic Nhập/Xuất gốc
-        document.getElementById('scanInput').addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') {
-                const val = this.value.trim();
-                if (!val) return;
-                if (currentStep === 'LOC' || !currentLoc) {
-                    currentLoc = val; currentStep = 'TAG';
-                    document.getElementById('scanLabel').innerText = "Đang chờ: QUÉT TAG ID";
-                } else if (currentStep === 'TAG') {
-                    tempRow.tag = val; currentStep = 'ITEM';
-                    document.getElementById('scanLabel').innerText = "Đang chờ: QUÉT MÃ HÀNG";
-                } else if (currentStep === 'ITEM') {
-                    tempRow.item = val; currentStep = 'QTY';
-                    document.getElementById('scanLabel').innerText = "Đang chờ: NHẬP SỐ LƯỢNG";
-                } else if (currentStep === 'QTY') {
-                    tempRow.qty = val;
-                    scannedData.push({ tag: tempRow.tag, item: tempRow.item, qty: tempRow.qty, loc: currentLoc, machine: 'PDA-01' });
-                    tempRow = { tag: '', item: '', qty: '' };
-                    currentStep = 'TAG';
-                    document.getElementById('scanLabel').innerText = "Đang chờ: QUÉT TAG ID";
-                    alert('Đã lưu tạm: ' + scannedData.length + ' dòng');
-                }
-                this.value = '';
-            }
-        });
-
-        document.getElementById('exportInput').addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') {
-                const tagId = this.value.trim();
-                if (!tagId) return;
-                fetch(CLOUD_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: 'OUTBOUND', tag: tagId }) })
-                .then(() => { alert('✅ Đã yêu cầu xuất Tag: ' + tagId); this.value = ''; });
-            }
-        });
-
-        document.getElementById('btnSync').addEventListener('click', async () => {
-            if (scannedData.length === 0) return alert('Chưa có dữ liệu!');
-            const btn = document.getElementById('btnSync');
-            btn.innerHTML = '⌛ Syncing...';
-            try {
-                await fetch(CLOUD_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: 'INBOUND', payload: scannedData }) });
-                alert('✅ ĐỒNG BỘ THÀNH CÔNG!');
-                scannedData = [];
-            } catch (e) { alert('Lỗi!'); }
-            btn.innerHTML = 'Đồng bộ Cloud';
-        });
 
         function loadDashboardData() {
             const ctx = document.getElementById('mainChart').getContext('2d');
             if (window.myChart) window.myChart.destroy();
             window.myChart = new Chart(ctx, {
                 type: 'line',
-                data: { labels: ['T1', 'T2', 'T3', 'T4'], datasets: [{ label: 'Biến động tồn', data: [100, 150, 120, 180], borderColor: '#4f46e5', tension: 0.4, fill: true, backgroundColor: 'rgba(79, 70, 229, 0.1)' }] },
+                data: { labels: ['Tuần 1', 'Tuần 2', 'Tuần 3', 'Tuần 4'], datasets: [{ label: 'Tags nhập kho', data: [12, 19, 3, 5], borderColor: '#4f46e5', tension: 0.4 }] },
                 options: { responsive: true, maintainAspectRatio: false }
             });
         }
 
         window.onload = () => {
-            switchPage('dashboard');
             document.getElementById('currentDate').innerText = new Date().toLocaleDateString('vi-VN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            switchPage('nhap');
         };
     </script>
 </body>
