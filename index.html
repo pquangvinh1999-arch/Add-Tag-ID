@@ -101,8 +101,8 @@
             const locInput = ref(null);
             const tagInput = ref(null);
 
-            // ⚠️ THAY LINK MỚI CỦA ANH VÀO ĐÂY
-            const CLOUD_API = 'LINK_WEB_APP_CỦA_ANH';
+            // ✅ ĐÃ CẬP NHẬT LINK WEB APP CỦA ANH
+            const CLOUD_API = 'https://script.google.com/macros/s/AKfycbwc6E8tk3IFSliy_Zs0JEePHheEso5cTDcNzNg9bHVtaoz-c9U7dhSHXr317vlFpp9q3w/exec';
 
             const queueReversed = computed(() => [...queue.value].reverse());
 
@@ -131,12 +131,12 @@
             const syncCloud = async () => {
                 isSyncing.value = true;
                 try {
-                    // Chuẩn hóa dữ liệu gửi đi khớp chính xác với App Script
+                    // Gửi dữ liệu theo đúng cấu trúc App Script yêu cầu
                     const payload = { 
                         data: queue.value.map(i => ({
                             tagID: i.tag,
                             bin: i.loc,
-                            thoiGian: i.time // Gửi đi là thoiGian (không dấu)
+                            thoiGian: i.time 
                         }))
                     };
 
