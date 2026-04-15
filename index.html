@@ -3,330 +3,183 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WHM PRO - ENTERPRISE ANALYTICS V2.1</title>
+    <title>WHM PRO - VINH ENTERPRISE</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; }
-        .da-card { background: white; border-radius: 16px; box-shadow: 0 4px 20px -2px rgba(0,0,0,0.05); border: 1px solid #f1f5f9; }
-        .edit-mode input { border: 2px solid #10b981 !important; background: #ecfdf5 !important; }
+        .input-focus:focus { border-color: #4f46e5; box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1); }
+        .list-enter-active, .list-leave-active { transition: all 0.3s ease; }
+        .list-enter-from, .list-leave-to { opacity: 0; transform: translateX(30px); }
     </style>
 </head>
-<body class="min-h-screen p-4 md:p-6">
+<body>
 
-    <header class="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+<div id="app" class="max-w-lg mx-auto min-h-screen flex flex-col p-4">
+    <div class="bg-indigo-600 rounded-2xl p-6 text-white shadow-lg mb-4 flex justify-between items-center">
         <div>
-            <h1 class="text-2xl font-extrabold text-slate-900">ANALYTICS REPORT By Vinh</h1>
-            <p class="text-slate-500 font-medium">Hệ thống phân tích dữ liệu tồn kho & Điều phối hàng</p>
+            <h1 class="text-xl font-extrabold tracking-tight">WHM PRO - ÁNH XẠ</h1>
+            <p class="text-[10px] opacity-80 uppercase font-semibold">BY VINH ENTERPRISE | {{ currentTime }}</p>
         </div>
-        <div class="flex flex-wrap gap-3">
-            <div class="da-card px-4 py-2 flex items-center gap-2">
-                <span class="text-xs font-bold text-slate-400">📅 Dự kiến xuất:</span>
-                <select id="filter-crd" onchange="applyFilters()" class="text-sm font-bold bg-transparent outline-none"></select>
-            </div>
-            <div class="da-card px-4 py-2 flex items-center gap-2">
-                <span class="text-xs font-bold text-slate-400">👤 KHÁCH HÀNG:</span>
-                <select id="filter-cus" onchange="applyFilters()" class="text-sm font-bold bg-transparent outline-none"></select>
-            </div>
-            <button onclick="fetchData()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl font-bold transition-all shadow-lg shadow-indigo-200 flex items-center gap-2">
-                <span id="sync-icon">🔄</span> Đồng bộ Cloud
+        <div class="text-right">
+            <p class="text-3xl font-black">{{ queue.length }}</p>
+            <p class="text-[10px] uppercase">Tags chờ đẩy</p>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-4 mb-4">
+        <div>
+            <label class="text-[10px] font-bold text-slate-400 uppercase ml-1">1. Vị trí ánh xạ (Bin)</label>
+            <input v-model="form.loc" ref="locInput" @keyup.enter="$refs.tagInput.focus()"
+                   class="w-full mt-1 p-4 bg-slate-50 border-2 border-slate-100 rounded-xl text-center text-2xl font-bold text-indigo-600 outline-none transition-all input-focus"
+                   placeholder="Quét Vị Trí...">
+        </div>
+
+        <div>
+            <label class="text-[10px] font-bold text-slate-400 uppercase ml-1">2. Quét Tag ID liên tục</label>
+            <input v-model="form.tag" ref="tagInput" @keyup.enter="handleScan"
+                   class="w-full mt-1 p-4 bg-indigo-50 border-2 border-indigo-100 rounded-xl text-center text-xl font-bold text-slate-700 outline-none transition-all input-focus"
+                   placeholder="Quét Tag ID tại đây...">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 pt-2">
+            <button @click="exportExcel" class="bg-emerald-600 text-white py-3 rounded-xl font-bold shadow-md active:scale-95 transition-all">
+                📥 Xuất Excel
+            </button>
+            <button @click="syncCloud" :disabled="isSyncing || queue.length === 0" 
+                    class="bg-indigo-600 text-white py-3 rounded-xl font-bold shadow-md active:scale-95 transition-all disabled:opacity-50">
+                {{ isSyncing ? '... Đang lưu' : '🚀 Đồng bộ Cloud' }}
             </button>
         </div>
-    </header>
-
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-        <div class="da-card p-6 bg-gradient-to-br from-indigo-50 to-white border-l-4 border-indigo-600">
-            <p class="text-slate-500 text-[10px] font-bold uppercase tracking-wider">Yêu Cầu xuất</p>
-            <h3 id="kpi-target" class="text-3xl font-black text-slate-800">0</h3>
-        </div>
-        <div class="da-card p-6 bg-gradient-to-br from-slate-50 to-white border-l-4 border-slate-400">
-            <p class="text-slate-500 text-[10px] font-bold uppercase tracking-wider">Tồn kho thực tế</p>
-            <h3 id="kpi-actual" class="text-3xl font-black text-slate-600">0</h3>
-        </div>
-        <div class="da-card p-6 bg-gradient-to-br from-amber-50 to-white border-l-4 border-amber-500">
-            <p class="text-slate-500 text-[10px] font-bold uppercase tracking-wider">Tỷ lệ đáp ứng</p>
-            <h3 id="kpi-rate" class="text-3xl font-black text-amber-600">0%</h3>
-        </div>
-        <div class="da-card p-6 bg-gradient-to-br from-purple-50 to-white border-l-4 border-purple-500">
-            <p class="text-slate-500 text-[10px] font-bold uppercase tracking-wider">Tổng Kiện xuất</p>
-            <h3 id="kpi-pkgs" class="text-3xl font-black text-purple-600">0</h3>
-        </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        <div class="da-card p-6 lg:col-span-2">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="font-extrabold text-slate-800">Phân tích chênh lệch & % Đáp ứng</h3>
-                <input type="text" id="search-sku" onkeyup="applyFilters()" placeholder="Tìm mã hàng..." class="bg-slate-100 border-none px-4 py-2 rounded-lg text-sm w-48 focus:ring-2 ring-indigo-500">
+    <div class="flex-1 overflow-hidden flex flex-col">
+        <div class="flex justify-between items-center mb-2 px-2">
+            <h3 class="text-xs font-bold text-slate-500 uppercase">Hàng chờ (Mới nhất trên cùng)</h3>
+            <button @click="clearAll" class="text-[10px] font-bold text-red-500">LÀM MỚI</button>
+        </div>
+        
+        <div class="overflow-y-auto flex-1 space-y-2 pb-10">
+            <transition-group name="list">
+                <div v-for="item in queueReversed" :key="item.id" 
+                     class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex justify-between items-center">
+                    <div class="space-y-1">
+                        <div class="flex items-center gap-2">
+                            <span class="bg-indigo-100 text-indigo-700 text-[10px] px-2 py-0.5 rounded-full font-bold">{{ item.loc }}</span>
+                            <span class="text-slate-400 text-[9px]">{{ item.time }}</span>
+                        </div>
+                        <p class="text-sm font-bold text-slate-800">Tag ID: {{ item.tag }}</p>
+                    </div>
+                    <div class="flex gap-1">
+                        <button @click="editItem(item.id)" class="text-blue-500 p-2 hover:bg-blue-50 rounded-lg">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                        </button>
+                        <button @click="deleteItem(item.id)" class="text-red-400 p-2 hover:bg-red-50 rounded-lg">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                        </button>
+                    </div>
+                </div>
+            </transition-group>
+            <div v-if="queue.length === 0" class="text-center py-10 text-slate-400 text-xs italic">
+                Chưa có dữ liệu. Hãy quét để bắt đầu.
             </div>
-            <div class="h-80"><canvas id="barChart"></canvas></div>
-        </div>
-        <div class="da-card p-6">
-            <h3 class="font-extrabold text-slate-800 mb-6">Phân tích rủi ro tiến độ</h3>
-            <div class="h-80"><canvas id="pieChart"></canvas></div>
         </div>
     </div>
+</div>
 
-    <div class="da-card overflow-hidden">
-        <div class="bg-slate-900 px-6 py-4 flex justify-between items-center text-white">
-            <div class="flex items-center gap-4">
-                <h3 class="font-bold text-sm uppercase tracking-widest">Bảng chi tiết điều phối</h3>
-                <button onclick="toggleEditMode()" id="btn-edit-toggle" class="bg-white/10 hover:bg-white/20 px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-2">
-                    ✏️ Chỉnh sửa số lượng
-                </button>
-            </div>
-            <button id="btn-save-all" onclick="saveAllChanges()" class="hidden bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-1.5 rounded-lg text-xs font-black">
-                💾 Lưu tất cả
-            </button>
-        </div>
-        <div class="overflow-x-auto">
-            <table class="w-full text-left text-sm border-collapse">
-                <thead class="bg-slate-50 text-slate-400 font-bold uppercase text-[10px] border-b">
-                    <tr>
-                        <th class="px-6 py-4">Khách hàng</th>
-                        <th class="px-6 py-4">Số Cont</th>
-                        <th class="px-6 py-4">Feature</th>
-                        <th class="px-6 py-4 text-center">Yêu Cầu</th>
-                        <th class="px-6 py-4 text-center">Quy cách</th>
-                        <th class="px-6 py-4 text-center">Số Kiện</th>
-                        <th class="px-6 py-4 text-center text-indigo-600">Tồn Thành Phẩm</th>
-                        <th class="px-6 py-4 text-center text-emerald-600">Tồn Sản Xuất</th>
-                        <th class="px-6 py-4 text-center">Tình trạng</th>
-                    </tr>
-                </thead>
-                <tbody id="main-table" class="divide-y divide-slate-100"></tbody>
-            </table>
-        </div>
-    </div>
+<script>
+    const { createApp, ref, onMounted, computed } = Vue;
 
-    <script>
-        Chart.register(ChartDataLabels);
+    createApp({
+        setup() {
+            const queue = ref(JSON.parse(localStorage.getItem('Vinh_WHM_Mapping')) || []);
+            const form = ref({ loc: '', tag: '' });
+            const isSyncing = ref(false);
+            const currentTime = ref('');
+            const locInput = ref(null);
+            const tagInput = ref(null);
 
-        const API = 'https://script.google.com/macros/s/AKfycbzSWdFRmBcrfBmQAMHJNrJNYeMhjKWZLJBHy7IgyNg8ckHsPlqHtcNDvk8W_W8kJzfSgQ/exec';
-        let rawData = [];
-        let groupedData = [];
-        let isEditMode = false;
-        let pendingUpdates = {};
-        let charts = {};
+            // Thay LINK_WEB_APP của anh vào đây
+            const CLOUD_API = 'https://script.google.com/macros/s/AKfycbx_yiyQX_5sZzzjuYCewBJbolSwfD_wZK5qDetlbvN1bTrqoVNGU7Pm2SS-ZOl4lN0T9g/exec';
 
-        async function fetchData() {
-            const icon = document.getElementById('sync-icon');
-            icon.classList.add('animate-spin');
-            try {
-                const res = await fetch(API);
-                rawData = await res.json();
-                setupDropdowns();
-                applyFilters();
-                icon.classList.remove('animate-spin');
-            } catch (e) { console.error(e); }
-        }
+            const queueReversed = computed(() => [...queue.value].reverse());
 
-        function setupDropdowns() {
-            const cus = [...new Set(rawData.map(d => d.cus))];
-            const crd = [...new Set(rawData.map(d => d.crd))];
-            document.getElementById('filter-cus').innerHTML = '<option value="ALL">TẤT CẢ KH</option>' + cus.map(c => `<option value="${c}">${c}</option>`).join('');
-            document.getElementById('filter-crd').innerHTML = '<option value="ALL">TẤT CẢ NGÀY</option>' + crd.map(c => `<option value="${c}">${c}</option>`).join('');
-        }
+            const updateTime = () => {
+                currentTime.value = new Date().toLocaleTimeString('vi-VN');
+            };
 
-        function applyFilters() {
-            const s = document.getElementById('search-sku').value.toLowerCase();
-            const c = document.getElementById('filter-cus').value;
-            const d = document.getElementById('filter-crd').value;
-            const filtered = rawData.filter(item => {
-                return (s === "" || item.desc.toLowerCase().includes(s)) &&
-                       (c === "ALL" || item.cus === c) &&
-                       (d === "ALL" || item.crd === d);
-            });
-            processAndRender(filtered);
-        }
-
-        function processAndRender(data) {
-            const contMap = {};
-            data.forEach(item => {
-                const model = item.desc.match(/\d{4}/)?.[0] || "Khác";
-                const contKey = `${item.cus}-${item.cont}`;
-                if (!contMap[contKey]) {
-                    contMap[contKey] = { cus: item.cus, cont: item.cont, totalQtyCont: 0, totalL: 0, totalR: 0, items: {} };
+            const handleScan = () => {
+                if (!form.value.loc || !form.value.tag) {
+                    alert("Vui lòng quét đủ Vị trí và Tag!");
+                    return;
                 }
-                if (!contMap[contKey].items[model]) {
-                    contMap[contKey].items[model] = { model: model, totalQty: 0, totalShelf: 0, totalPending: 0, pcsPerPkg: item.pcsPerPkg || 1, rows: [] };
-                }
-                const currentItem = contMap[contKey].items[model];
-                currentItem.totalQty += item.qty;
-                currentItem.totalShelf += item.invShelf;
-                currentItem.totalPending += item.invPending;
-                currentItem.rows.push({ rowIndex: item.rowIndex, side: item.desc.includes("LHF") ? "L" : "R", val: item.invPending });
-                contMap[contKey].totalQtyCont += item.qty;
-                if (item.desc.includes("LHF")) contMap[contKey].totalL += item.qty; else contMap[contKey].totalR += item.qty;
-            });
-            groupedData = Object.values(contMap).map(contGroup => {
-                contGroup.items = Object.values(contGroup.items);
-                return contGroup;
-            });
-            renderUI();
-        }
 
-        function renderUI() {
-            const tbody = document.getElementById('main-table');
-            let tQty = 0, tInv = 0, tPkgs = 0;
-            const statusMap = { 'OnTrack': 0, 'AtRisk': 0 };
-            const flatModelsForChart = [];
-            let htmlContent = '';
-
-            groupedData.forEach(group => {
-                group.items.forEach(g => {
-                    const totalInv = g.totalShelf + g.totalPending;
-                    const pkgs = (g.totalQty / 2) / (g.pcsPerPkg || 1);
-                    const rate = g.totalQty ? Math.round((totalInv / g.totalQty) * 100) : 0;
-                    tQty += g.totalQty; tInv += totalInv; tPkgs += pkgs;
-                    flatModelsForChart.push(g);
-                    if(rate >= 100) statusMap['OnTrack']++; else statusMap['AtRisk']++;
-
-                    htmlContent += `
-                        <tr class="hover:bg-slate-50 border-b">
-                            <td class="px-6 py-4 font-bold text-slate-800">${group.cus}</td>
-                            <td class="px-6 py-4 font-bold text-slate-500">${group.cont}</td>
-                            <td class="px-6 py-4 font-extrabold text-indigo-600">${g.model}</td>
-                            <td class="px-6 py-4 text-center font-bold">${g.totalQty}</td>
-                            <td class="px-6 py-4 text-center text-slate-400">${g.pcsPerPkg}</td>
-                            <td class="px-6 py-4 text-center font-bold text-purple-600">${pkgs.toFixed(1)}</td>
-                            <td class="px-6 py-4 text-center font-bold text-indigo-500">${g.totalShelf}</td>
-                            <td class="px-6 py-4 text-center">
-                                <div class="flex gap-1 justify-center">
-                                    ${g.rows.map(r => `<input type="number" value="${r.val}" data-row="${r.rowIndex}" ${!isEditMode ? 'readonly' : ''} onchange="trackChange(${r.rowIndex}, this.value)" class="w-10 text-center py-0.5 rounded bg-slate-100 text-[10px] font-bold">`).join('')}
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 text-center">
-                                <span class="px-2 py-1 rounded-full text-[10px] font-black ${rate >= 100 ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}">
-                                    ${rate}%
-                                </span>
-                            </td>
-                        </tr>`;
+                queue.value.push({
+                    id: Date.now(),
+                    loc: form.value.loc.trim(),
+                    tag: form.value.tag.trim(),
+                    time: new Date().toLocaleString('vi-VN')
                 });
-            });
-            tbody.innerHTML = htmlContent;
-            document.getElementById('kpi-target').innerText = tQty.toLocaleString();
-            document.getElementById('kpi-actual').innerText = tInv.toLocaleString();
-            document.getElementById('kpi-rate').innerText = tQty ? Math.round((tInv/tQty)*100) + "%" : "0%";
-            document.getElementById('kpi-pkgs').innerText = tPkgs.toFixed(1);
-            updateCharts(flatModelsForChart, statusMap);
-        }
 
-        function updateCharts(data, statusMap) {
-            if(charts.bar) charts.bar.destroy();
-            if(charts.pie) charts.pie.destroy();
+                form.value.tag = ''; // Chỉ reset tag để quét tiếp tại vị trí cũ
+                saveLocal();
+                tagInput.value.focus();
+            };
 
-            const labels = data.map(d => d.model);
-            const reqData = data.map(d => d.totalQty);
-            const actData = data.map(d => d.totalShelf + d.totalPending);
+            const syncCloud = async () => {
+                isSyncing.value = true;
+                try {
+                    // Chuẩn hóa dữ liệu 3 cột gửi lên Sheet
+                    const payload = { 
+                        data: queue.value.map(i => ({
+                            tagID: i.tag,
+                            bin: i.loc,
+                            thoiGian: i.time
+                        }))
+                    };
 
-            const ctxBar = document.getElementById('barChart').getContext('2d');
-            charts.bar = new Chart(ctxBar, {
-                data: {
-                    labels: labels,
-                    datasets: [
-                        { 
-                            type: 'line',
-                            label: 'Trend',
-                            data: actData,
-                            borderColor: 'rgba(99, 102, 241, 0.2)',
-                            borderWidth: 1.5,
-                            pointRadius: 2,
-                            fill: false,
-                            tension: 0.4
-                        },
-                        { 
-                            type: 'bar',
-                            label: 'Yêu cầu', 
-                            data: reqData, 
-                            backgroundColor: '#6366f1',
-                            borderRadius: 2,
-                            barThickness: 10, // Cột nhỏ lại theo yêu cầu
-                            categoryPercentage: 0.8,
-                            barPercentage: 0.9
-                        },
-                        { 
-                            type: 'bar',
-                            label: 'Thực tế', 
-                            data: actData, 
-                            backgroundColor: '#94a3b8',
-                            borderRadius: 2,
-                            barThickness: 10, // Cột nhỏ lại theo yêu cầu
-                            categoryPercentage: 0.8,
-                            barPercentage: 0.9
-                        }
-                    ]
-                },
-                options: { 
-                    responsive: true, maintainAspectRatio: false,
-                    plugins: {
-                        datalabels: {
-                            anchor: 'end', align: 'top', offset: 5,
-                            font: { weight: '800', size: 8 }, // Chữ nhỏ lại
-                            formatter: (val, ctx) => {
-                                if (ctx.datasetIndex !== 2) return null;
-                                const req = reqData[ctx.dataIndex];
-                                return Math.round((val / req) * 100) + '%';
-                            },
-                            color: (ctx) => {
-                                const rate = (actData[ctx.dataIndex] / reqData[ctx.dataIndex]) * 100;
-                                return (rate >= 100) ? '#10b981' : '#ef4444';
-                            }
-                        },
-                        legend: { position: 'top', labels: { boxWidth: 12, font: { size: 10, weight: '600' } } }
-                    },
-                    scales: {
-                        y: { beginAtZero: true, grid: { color: '#f1f5f9' }, ticks: { font: { size: 9 } } },
-                        x: { grid: { display: false }, ticks: { font: { size: 9, weight: 'bold' } } }
-                    }
+                    await fetch(CLOUD_API, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        body: JSON.stringify(payload)
+                    });
+
+                    alert("🚀 Đã đồng bộ lên Google Sheet thành công!");
+                    queue.value = [];
+                    saveLocal();
+                } catch (e) {
+                    alert("❌ Lỗi kết nối. Vui lòng kiểm tra lại!");
+                } finally {
+                    isSyncing.value = false;
                 }
+            };
+
+            const saveLocal = () => localStorage.setItem('Vinh_WHM_Mapping', JSON.stringify(queue.value));
+            const deleteItem = (id) => { queue.value = queue.value.filter(i => i.id !== id); saveLocal(); };
+            const editItem = (id) => {
+                const item = queue.value.find(i => i.id === id);
+                const newVal = prompt("Sửa lại Tag ID:", item.tag);
+                if (newVal) { item.tag = newVal.trim(); saveLocal(); }
+            };
+            const clearAll = () => { if(confirm('Xóa hết hàng chờ?')) { queue.value = []; saveLocal(); }};
+            const exportExcel = () => {
+                const ws = XLSX.utils.json_to_sheet(queue.value.map(i => ({ "Tag ID": i.tag, "Bin": i.loc, "Thời gian": i.time })));
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Data");
+                XLSX.writeFile(wb, `WHM_Mapping_${Date.now()}.xlsx`);
+            };
+
+            onMounted(() => {
+                updateTime();
+                setInterval(updateTime, 1000);
+                locInput.value.focus();
             });
 
-            const ctxPie = document.getElementById('pieChart').getContext('2d');
-            charts.pie = new Chart(ctxPie, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Đạt tiến độ', 'Chậm tiến độ'],
-                    datasets: [{ 
-                        data: [statusMap.OnTrack, statusMap.AtRisk], 
-                        backgroundColor: ['#10b981', '#ef4444'],
-                        borderWidth: 0
-                    }]
-                },
-                options: { 
-                    responsive: true, maintainAspectRatio: false, cutout: '75%',
-                    plugins: {
-                        legend: { position: 'bottom', labels: { usePointStyle: true, font: { size: 10, weight: 'bold' } } },
-                        datalabels: {
-                            display: true, color: '#fff', font: { weight: 'bold', size: 11 },
-                            formatter: (val) => val > 0 ? val + ' mã' : ''
-                        }
-                    }
-                }
-            });
+            return { queue, form, queueReversed, isSyncing, currentTime, locInput, tagInput, handleScan, syncCloud, deleteItem, editItem, clearAll, exportExcel };
         }
-
-        function trackChange(idx, val) { pendingUpdates[idx] = Number(val); }
-        function toggleEditMode() {
-            isEditMode = !isEditMode;
-            document.getElementById('btn-edit-toggle').innerHTML = isEditMode ? "❌ Hủy Sửa" : "✏️ Chỉnh sửa số lượng";
-            document.getElementById('btn-save-all').classList.toggle('hidden', !isEditMode);
-            renderUI();
-        }
-        async function saveAllChanges() {
-            const btn = document.getElementById('btn-save-all');
-            const list = Object.keys(pendingUpdates).map(k => ({ rowIndex: Number(k), newValue: pendingUpdates[k] }));
-            if(list.length === 0) return toggleEditMode();
-            btn.innerText = "⏳...";
-            try {
-                await fetch(API, { method: 'POST', body: JSON.stringify(list) });
-                pendingUpdates = {}; isEditMode = false; fetchData();
-            } catch (e) { alert("Lỗi!"); }
-        }
-
-        fetchData();
-    </script>
+    }).mount('#app');
+</script>
 </body>
 </html>
